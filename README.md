@@ -58,18 +58,38 @@ Briefly, in order to use the Java tracer, the following prerquisites must be met
 
 ### Cold start considerations
 
+<<<<<<< HEAD
 The Java Tracer adds a nontrivial cold start penalty. 
 Expect roughly 6 seconds per cold start if your Lambda function is configured with 3008MB of memory.
 Lambda runtime CPU scales with the amount of memory allocated, so allocating more memory may  help alleviate cold start issues.
 Also consider using provisioned concurrency to keep your lambda function warm.
+=======
+```java
+public class Handler implements RequestHandler<APIGatewayV2ProxyRequestEvent, APIGatewayV2ProxyResponseEvent> {
+    public Integer handleRequest(APIGatewayV2ProxyRequestEvent request, Context context){
+        DDLambda dd = new DDLambda(request, context);
+ 
+        URL url = new URL("https://example.com");
+        HttpURLConnection instrumentedUrlConnection = dd.makeUrlConnection(url); //Trace headers included
+>>>>>>> d613011... Update the parameter name of the sample code (#29)
 
 ### Compatible Java runtimes
 
 - java8.al2 (aka Java 8 (Corretto))
 - java11 (aka Java 11 (Corretto))
 
+<<<<<<< HEAD
 If your lambda function is using Java 8, please change it to Java 8 Corretto.
 It's called java8.al2 if you're editing serverless.yaml.
+=======
+```java
+public class Handler implements RequestHandler<APIGatewayV2ProxyRequestEvent, APIGatewayV2ProxyResponseEvent> {
+    public Integer handleRequest(APIGatewayV2ProxyRequestEvent request, Context context){
+        DDLambda dd = new DDLambda(request, context);
+ 
+        URL url = new URL("https://example.com");
+        HttpURLConnection hc = (HttpURLConnection)url.openConnection();
+>>>>>>> d613011... Update the parameter name of the sample code (#29)
 
 ### Required Lambda Layer containing the Java Tracer
 
@@ -79,6 +99,7 @@ arn:aws:lambda:[REGION]:464622532012:layer:dd-trace-java:2
 
 The lambda layer version (in this case, `2`) will always correspond with the minor version of the `datadog-lambda-java` library.
 
+<<<<<<< HEAD
 ### Required environment variables for the Java Tracer
 
 ```bash
@@ -86,6 +107,21 @@ JAVA_TOOL_OPTIONS: "-javaagent:\"/opt/java/lib/dd-java-agent.jar\""
 DD_LOGS_INJECTION: "true"
 DD_JMXFETCH_ENABLED: "false"
 DD_TRACE_ENABLED: "true"
+=======
+```java
+public class Handler implements RequestHandler<APIGatewayV2ProxyRequestEvent, APIGatewayV2ProxyResponseEvent> {
+    public Integer handleRequest(APIGatewayV2ProxyRequestEvent request, Context context){
+        DDLambda dd = new DDLambda(request, context);
+    
+        HttpClient client = HttpClientBuilder.create().build();
+    
+        HttpGet hg = dd.makeHttpGet("https://example.com"); //Trace headers included
+
+        HttpResponse hr = client.execute(hg);
+        return 7;
+    }
+}
+>>>>>>> d613011... Update the parameter name of the sample code (#29)
 ```
 
 ### Required code modification for the Java Tracer
@@ -93,7 +129,25 @@ DD_TRACE_ENABLED: "true"
 In order to use the Java Tracer, you must instantiate a new `DDLambda` at the beginning of your Lambda function and call `DDLambda#finish()` at the end of it.
 
 ```java
+<<<<<<< HEAD
 public class Handler{
+=======
+public class Handler implements RequestHandler<APIGatewayV2ProxyRequestEvent, APIGatewayV2ProxyResponseEvent> {
+    public Integer handleRequest(APIGatewayV2ProxyRequestEvent request, Context context){
+        DDLambda dd = new DDLambda(request, context);
+    
+        HttpClient client = HttpClientBuilder.create().build();
+        HttpGet hg = new HttpGet("https://example.com");
+    
+        //Add the distributed tracing headers
+        hg = (HttpGet) dd.addTraceHeaders(hg);
+
+        HttpResponse hr = client.execute(hg);
+        return 7;
+    }
+}
+```
+>>>>>>> d613011... Update the parameter name of the sample code (#29)
 
   public ApiGatewayResponse handleRequest(APIGatewayProxyRequestEvent input, Context context){
     DDLambda ddl = new DDLambda(input, context); // required to set various tags inside the tracer
@@ -102,9 +156,27 @@ public class Handler{
     do_some_stuff();
     make_some_http_requests();
 
+<<<<<<< HEAD
     ddl.finish(); // Required to complete the trace
     return new ApiGatewayResponse();
   }
+=======
+```java
+public class Handler implements RequestHandler<APIGatewayV2ProxyRequestEvent, APIGatewayV2ProxyResponseEvent> {
+    public Integer handleRequest(APIGatewayV2ProxyRequestEvent request, Context context){
+        DDLambda dd = new DDLambda(request, context);
+    
+        HttpClient client = HttpClientBuilder.create().build();
+        OkHttpClient okHttpClient = new OkHttpClient.Builder().build();
+        Request okHttpRequest = dd.makeRequestBuilder() // Trace headers included
+            .url("https://example.com")
+            .build(); 
+
+        Response resp = okHttpClient.newCall(okHttpRequest).execute();
+
+        return 7;
+    }
+>>>>>>> d613011... Update the parameter name of the sample code (#29)
 }
 ```
 
@@ -112,8 +184,31 @@ public class Handler{
 and sets tags based on the Lambda context. If there is a trace context attached to the request, that will be used
 to set the trace ID and the parent of the span.
 
+<<<<<<< HEAD
 `ddl.finish();` finishes the active span and closes the active trace scope. 
 The tracer will flush the trace to Cloudwatch logs once this is called.
+=======
+```java
+public class Handler implements RequestHandler<APIGatewayV2ProxyRequestEvent, APIGatewayV2ProxyResponseEvent> {
+    public Integer handleRequest(APIGatewayV2ProxyRequestEvent request, Context context){
+        DDLambda dd = new DDLambda(request, context);
+    
+        HttpClient client = HttpClientBuilder.create().build();
+        OkHttpClient okHttpClient = new OkHttpClient.Builder().build();
+        Request okHttpRequest = new Request.Builder()
+            .url("https://example.com")
+            .build();
+
+        //Add the distributed tracing headers
+        okHttpRequest = dd.addTraceHeaders(okHttpRequest);
+
+        Response resp = okHttpClient.newCall(okHttpRequest).execute();
+
+        return 7;
+    }
+}
+```
+>>>>>>> d613011... Update the parameter name of the sample code (#29)
 
 # Distributed Tracing
 
