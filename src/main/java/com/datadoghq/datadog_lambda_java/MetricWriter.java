@@ -78,6 +78,8 @@ class ExtensionMetricWriter extends MetricWriter{
     }
 
     @Override
-    public void flush(){}
+    public void flush(){
+        this.client.close();
+    }
 }
 

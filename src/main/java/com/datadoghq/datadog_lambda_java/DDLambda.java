@@ -1,6 +1,7 @@
 package com.datadoghq.datadog_lambda_java;
 
 import com.amazonaws.services.lambda.runtime.events.KinesisEvent;
+import com.timgroup.statsd.NonBlockingStatsDClient;
 import io.opentracing.Scope;
 import io.opentracing.SpanContext;
 import io.opentracing.Tracer;
@@ -231,6 +232,7 @@ public class DDLambda {
         if(this.shouldUseExtension) {
             Extension.flush();
         }
+        MetricWriter.getMetricWriterImpl().flush();
     }
 
     /**
